@@ -51,7 +51,7 @@ rom_ext_signer_raw = custom_target(
   output: '.',
   console: true,
   build_always_stale: true,
-  build_by_default: false,
+  build_by_default: true,
 )
 
 rom_ext_signer_elf = custom_target(
@@ -61,5 +61,5 @@ rom_ext_signer_elf = custom_target(
   input: rom_ext_signer_raw,
   output: 'rom_ext_signer.elf',
   build_always_stale: true,
-  build_by_default: false,
+  build_by_default: true,
 )
