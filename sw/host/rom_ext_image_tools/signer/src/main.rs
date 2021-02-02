@@ -21,8 +21,8 @@ use mundane::public::rsa::RsaPkcs1v15;
 use mundane::public::rsa::RsaSignature;
 use mundane::public::rsa::RsaPrivKey;
 
-use ring::signature::KeyPair;
-use ring::signature::RsaKeyPair;
+//use ring::signature::KeyPair;
+//use ring::signature::RsaKeyPair;
 
 fn main() {
     let arg: String = env::args().nth(1).expect("Config path is missing");
@@ -43,7 +43,7 @@ fn main() {
 
     // Update fields.
     raw_image.update_generic_fields(&config);
-    update_public_key_fields(&mut raw_image, &private_key_der);
+//    update_public_key_fields(&mut raw_image, &private_key_der);
 
     // Sign the image.
     const MESSAGE: &[u8] = b"Hello World!";
@@ -60,26 +60,26 @@ fn main() {
     raw_image.write_file();
 }
 
-fn update_public_key_fields(raw_image: &mut RawImage, private_key_der: &[u8]) {
-    let ring_key_pair = RsaKeyPair::from_der(private_key_der)
-        .expect("Failed to create Ring RsaKeyPair from der!");
-
-    let mut modulus = ring_key_pair
-        .public_key()
-        .modulus()
-        .big_endian_without_leading_zero()
-        .to_vec();
-
-    let mut exponent = ring_key_pair
-        .public_key()
-        .exponent()
-        .big_endian_without_leading_zero()
-        .to_vec();
-
-    // Make little-endian.
-    modulus.reverse();
-    exponent.reverse();
-
-    raw_image.update_exponent_field(&exponent);
-    raw_image.update_modulus_field(&modulus);
-}
+//fn update_public_key_fields(raw_image: &mut RawImage, private_key_der: &[u8]) {
+//    let ring_key_pair = RsaKeyPair::from_der(private_key_der)
+//        .expect("Failed to create Ring RsaKeyPair from der!");
+//
+//    let mut modulus = ring_key_pair
+//        .public_key()
+//        .modulus()
+//        .big_endian_without_leading_zero()
+//        .to_vec();
+//
+//    let mut exponent = ring_key_pair
+//        .public_key()
+//        .exponent()
+//        .big_endian_without_leading_zero()
+//        .to_vec();
+//
+//    // Make little-endian.
+//    modulus.reverse();
+//    exponent.reverse();
+//
+//    raw_image.update_exponent_field(&exponent);
+//    raw_image.update_modulus_field(&modulus);
+//}
