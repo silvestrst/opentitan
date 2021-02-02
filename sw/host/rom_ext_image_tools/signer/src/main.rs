@@ -41,9 +41,15 @@ fn main() {
     let private_key_der = fs::read(private_key_path)
         .expect("Failed to read the image!");
 
-    // Update fields.
+    // Update fields from config.
+    let usage_constraints_path =
+        Path::new(&config.input_files.usage_constraints_path);
+    let usage_constraints = fs::read(usage_constraints_path)
+        .expect("Failed to read usage constraints!");
+
+    raw_image.update_usage_constraints_field(&usage_constraints);
     raw_image.update_generic_fields(&config);
-//    update_public_key_fields(&mut raw_image, &private_key_der);
+    // update_public_key_fields(&mut raw_image, &private_key_der);
 
     // Sign the image.
     const MESSAGE: &[u8] = b"Hello World!";

@@ -12,7 +12,6 @@ use serde_hjson::Value;
 #[derive(Deserialize, Debug)]
 pub struct ParsedConfig {
     pub input_files: InputFiles,
-    pub usage_constraints: UsageConstraints,
     pub peripheral_lockdown_info: PeripheralLockdownInfo,
     pub manifest_identifier: String,
     pub image_length: String,
@@ -29,6 +28,7 @@ pub struct ParsedConfig {
 pub struct InputFiles {
     pub image_path: String,
     pub private_key_der_path: String,
+    pub usage_constraints_path: String,
 }
 
 /// TODO - possibly should be a binary file.
