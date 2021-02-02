@@ -39,40 +39,34 @@ impl RawImage {
         // TODO checks to make sure that the config values (strings) are not
         // bigger than the actual field size.
 
-        let mut myclosure = |value, offset| {
+        let mut update = |value, offset| {
             let bytes = str_to_vec_u8(value);
-            let data = &mut self.data;
-            let begin = offset as usize;
-            let end = begin + bytes.len();
-            data.splice(begin..end, bytes.iter().cloned());
+            self.update_field(&bytes, offset);
         };
 
-        myclosure(
+        update(
             &config.manifest_identifier,
             manifest::ROM_EXT_MANIFEST_IDENTIFIER_OFFSET,
         );
-        myclosure(&config.image_length, manifest::ROM_EXT_IMAGE_LENGTH_OFFSET);
-        myclosure(
-            &config.image_version,
-            manifest::ROM_EXT_IMAGE_VERSION_OFFSET,
-        );
-        myclosure(
+        update(&config.image_length, manifest::ROM_EXT_IMAGE_LENGTH_OFFSET);
+        update(&config.image_version, manifest::ROM_EXT_IMAGE_VERSION_OFFSET);
+        update(
             &config.image_timestamp,
             manifest::ROM_EXT_IMAGE_TIMESTAMP_OFFSET,
         );
-        myclosure(
+        update(
             &config.extension0_checksum,
             manifest::ROM_EXT_EXTENSION0_CHECKSUM_OFFSET,
         );
-        myclosure(
+        update(
             &config.extension1_checksum,
             manifest::ROM_EXT_EXTENSION1_CHECKSUM_OFFSET,
         );
-        myclosure(
+        update(
             &config.extension2_checksum,
             manifest::ROM_EXT_EXTENSION2_CHECKSUM_OFFSET,
         );
-        myclosure(
+        update(
             &config.extension3_checksum,
             manifest::ROM_EXT_EXTENSION3_CHECKSUM_OFFSET,
         );
@@ -80,27 +74,32 @@ impl RawImage {
 
     /// TODO
     pub fn update_exponent_field(&mut self, exponent: &[u8]) {
-        let data = &mut self.data;
-        let begin =
-            manifest::ROM_EXT_SIGNATURE_KEY_PUBLIC_EXPONENT_OFFSET as usize;
-        let end = begin + exponent.len();
-        data.splice(begin..end, exponent.iter().cloned());
+        let offset = manifest::ROM_EXT_SIGNATURE_KEY_PUBLIC_EXPONENT_OFFSET;
+        self.update_field(exponent, offset);
     }
 
     /// TODO
     pub fn update_modulus_field(&mut self, modulus: &[u8]) {
-        let data = &mut self.data;
-        let begin = manifest::ROM_EXT_SIGNATURE_KEY_MODULUS_OFFSET as usize;
-        let end = begin + modulus.len();
-        data.splice(begin..end, modulus.iter().cloned());
+        let offset = manifest::ROM_EXT_SIGNATURE_KEY_MODULUS_OFFSET;
+        self.update_field(modulus, offset);
     }
 
     /// TODO
     pub fn update_signature_field(&mut self, signature: &[u8]) {
-        let data = &mut self.data;
-        let begin = manifest::ROM_EXT_IMAGE_SIGNATURE_OFFSET as usize;
-        let end = begin + signature.len();
-        data.splice(begin..end, signature.iter().cloned());
+        self.update_field(signature, manifest::ROM_EXT_IMAGE_SIGNATURE_OFFSET);
+    }
+
+    /// TODO
+    pub fn update_usage_constraints_field(&mut self, usage_constraints: &[u8]) {
+        let offset = manifest::ROM_EXT_USAGE_CONSTRAINTS_OFFSET;
+        self.update_field(usage_constraints, offset);
+    }
+
+    fn update_field(&mut self, field_data: &[u8], field_offset: u32) {
+        let image = &mut self.data;
+        let begin = field_offset as usize;
+        let end = begin + field_data.len();
+        image.splice(begin..end, field_data.iter().cloned());        
     }
 
     /// Writes the image buffer contents into a file.
