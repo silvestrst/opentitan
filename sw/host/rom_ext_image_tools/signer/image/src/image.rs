@@ -78,6 +78,31 @@ impl RawImage {
         );
     }
 
+    /// TODO
+    pub fn update_exponent_field(&mut self, exponent: &[u8]) {
+        let data = &mut self.data;
+        let begin =
+            manifest::ROM_EXT_SIGNATURE_KEY_PUBLIC_EXPONENT_OFFSET as usize;
+        let end = begin + exponent.len();
+        data.splice(begin..end, exponent.iter().cloned());
+    }
+
+    /// TODO
+    pub fn update_modulus_field(&mut self, modulus: &[u8]) {
+        let data = &mut self.data;
+        let begin = manifest::ROM_EXT_SIGNATURE_KEY_MODULUS_OFFSET as usize;
+        let end = begin + modulus.len();
+        data.splice(begin..end, modulus.iter().cloned());
+    }
+
+    /// TODO
+    pub fn update_signature_field(&mut self, signature: &[u8]) {
+        let data = &mut self.data;
+        let begin = manifest::ROM_EXT_IMAGE_SIGNATURE_OFFSET as usize;
+        let end = begin + signature.len();
+        data.splice(begin..end, signature.iter().cloned());
+    }
+
     /// Writes the image buffer contents into a file.
     ///
     /// Places the new file alongside the original, with a "new_" prefix.
