@@ -10,6 +10,7 @@ use std::path::PathBuf;
 
 use crate::manifest;
 use rom_ext_config::parser::ParsedConfig;
+use rom_ext_config::parser::PeripheralLockdownInfo;
 
 /// Stripped binary image buffer.
 pub struct RawImage {
@@ -31,11 +32,13 @@ impl RawImage {
         }
     }
 
-    /// Updates the manifest portion of the image buffer.
+    /// Updates the fields from the configuration file.
     ///
-    /// This function updates the image manifest data with values parsed
-    /// from configuration file.
-    pub fn update_generic_fields(&mut self, config: &ParsedConfig) {
+    /// This function updates the image manifest data with values parsed from
+    /// the configuration file (known ahead of time). Some of the other fields
+    /// like signature key public exponent and modulus, are obtained at
+    /// run-time.
+    pub fn update_static_fields(&mut self, config: &ParsedConfig) {
         // TODO checks to make sure that the config values (strings) are not
         // bigger than the actual field size.
 
@@ -48,7 +51,6 @@ impl RawImage {
             &config.manifest_identifier,
             manifest::ROM_EXT_MANIFEST_IDENTIFIER_OFFSET,
         );
-        update(&config.image_length, manifest::ROM_EXT_IMAGE_LENGTH_OFFSET);
         update(&config.image_version, manifest::ROM_EXT_IMAGE_VERSION_OFFSET);
         update(
             &config.image_timestamp,
@@ -70,6 +72,12 @@ impl RawImage {
             &config.extension3_checksum,
             manifest::ROM_EXT_EXTENSION3_CHECKSUM_OFFSET,
         );
+
+        self.update_usage_constraints_field(
+            &config.input_files.usage_constraints_path);
+
+        self.update_peripheral_lockdown_info_field(
+            &config.peripheral_lockdown_info);
     }
 
     /// TODO
@@ -90,12 +98,6 @@ impl RawImage {
     }
 
     /// TODO
-    pub fn update_usage_constraints_field(&mut self, usage_constraints: &[u8]) {
-        let offset = manifest::ROM_EXT_USAGE_CONSTRAINTS_OFFSET;
-        self.update_field(usage_constraints, offset);
-    }
-
-    /// TODO
     pub fn data_to_sign(&self) -> &[u8] {
         let offset = manifest::ROM_EXT_SIGNED_AREA_START_OFFSET as usize;
         &self.data[offset..]
@@ -113,6 +115,24 @@ impl RawImage {
         let output_file = self.path.with_file_name(new_file_name);
 
         fs::write(output_file, &self.data).expect("Failed to write the new binary file!");
+    }
+
+    /// TODO
+    fn update_usage_constraints_field(&mut self, dir: &str) {
+        // Update fields from config.
+        let usage_constraints_path = Path::new(dir);
+        let usage_constraints = fs::read(usage_constraints_path)
+            .expect("Failed to read usage constraints!");
+
+        let offset = manifest::ROM_EXT_USAGE_CONSTRAINTS_OFFSET;
+        self.update_field(&usage_constraints, offset);
+    }
+
+    /// TODO
+    fn update_peripheral_lockdown_info_field(
+        &mut self, info: &PeripheralLockdownInfo) {
+
+        // TODO
     }
 
     /// TODO
