@@ -103,6 +103,21 @@ impl RawImage {
         &self.data[offset..]
     }
 
+    /// TODO
+    pub fn device_usage_value(&mut self, dir: &str) -> Vec<u8>{
+        // Update fields from config.
+        let usage_constraints_path = Path::new(dir);
+        let usage_constraints = fs::read(usage_constraints_path)
+            .expect("Failed to read usage constraints!");
+
+        // TODO: generate the device_usage_value from usage_constraints.
+        //       meanwhile use a hard-coded vector.
+
+        let dummy: Vec<u8> = vec![0xA5; 1024];
+
+        dummy
+    }
+
     /// Writes the image buffer contents into a file.
     ///
     /// Places the new file alongside the original, with a "new_" prefix.
