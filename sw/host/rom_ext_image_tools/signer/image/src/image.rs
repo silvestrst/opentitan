@@ -95,11 +95,10 @@ impl RawImage {
         self.update_field(usage_constraints, offset);
     }
 
-    fn update_field(&mut self, field_data: &[u8], field_offset: u32) {
-        let image = &mut self.data;
-        let begin = field_offset as usize;
-        let end = begin + field_data.len();
-        image.splice(begin..end, field_data.iter().cloned());        
+    /// TODO
+    pub fn data_to_sign(&self) -> &[u8] {
+        let offset = manifest::ROM_EXT_SIGNED_AREA_START_OFFSET as usize;
+        &self.data[offset..]
     }
 
     /// Writes the image buffer contents into a file.
@@ -114,6 +113,14 @@ impl RawImage {
         let output_file = self.path.with_file_name(new_file_name);
 
         fs::write(output_file, &self.data).expect("Failed to write the new binary file!");
+    }
+
+    /// TODO
+    fn update_field(&mut self, field_data: &[u8], field_offset: u32) {
+        let image = &mut self.data;
+        let begin = field_offset as usize;
+        let end = begin + field_data.len();
+        image.splice(begin..end, field_data.iter().cloned());
     }
 }
 

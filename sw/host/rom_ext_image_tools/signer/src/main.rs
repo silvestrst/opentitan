@@ -51,13 +51,15 @@ fn main() {
     raw_image.update_generic_fields(&config);
     // update_public_key_fields(&mut raw_image, &private_key_der);
 
-    // Sign the image.
-    const MESSAGE: &[u8] = b"Hello World!";
-
+    // Convert ASN.1 DER private key into Mundane RsaPrivKey.
     let private_key = RsaPrivKey::parse_from_der(&private_key_der)
         .expect("Failed to parse private key!");
+
+
+    // Sign the image.
+    let data_to_sign = raw_image.data_to_sign();
     let signature = RsaSignature::<B3072, RsaPkcs1v15, Sha256>::
-    sign(&private_key, &MESSAGE).expect("Failed to sign!");
+    sign(&private_key, data_to_sign).expect("Failed to sign!");
 
     // Update signature field.
     raw_image.update_signature_field(signature.bytes());
