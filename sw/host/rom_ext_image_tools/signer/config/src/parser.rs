@@ -14,7 +14,6 @@ pub struct ParsedConfig {
     pub input_files: InputFiles,
     pub peripheral_lockdown_info: PeripheralLockdownInfo,
     pub manifest_identifier: String,
-    pub image_length: String,
     pub image_version: String,
     pub image_timestamp: String,
     pub extension0_checksum: String,
