@@ -33,13 +33,9 @@ pub struct InputFiles {
     pub usage_constraints_path: String,
 }
 
-/// TODO - possibly should be a binary file.
-#[derive(Deserialize, Debug)]
-pub struct UsageConstraints {
-    pub value: u32,
-}
-
-/// TODO
+/// Peripheral Lockdown Information configuration data.
+///
+/// This data is used to produce 128-bit encoded manifest field.
 #[derive(Deserialize, Debug)]
 pub struct PeripheralLockdownInfo {
     pub value: u32,

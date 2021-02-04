@@ -168,7 +168,10 @@ impl RawImage {
         self.update_field(&dummy, offset);
     }
 
-    /// TODO
+    /// Updates ROM_EXT manifest timestamp field.
+    ///
+    /// The generated time stamp is u64. Normally time stamp is a signed
+    /// integer, however there is no risk of overflow into a "negative".
     fn update_timestamp_field(&mut self) {
         let duration = SystemTime::now().duration_since(UNIX_EPOCH)
             .expect("Failed to obtain the current time!");
@@ -178,7 +181,9 @@ impl RawImage {
         self.update_field(bytes, offset);
     }
 
-    /// TODO
+    /// Updates a ROM_EXT manifest field.
+    ///
+    /// Generic function, is used by the specific field update counterparts.
     fn update_field(&mut self, field_data: &[u8], field_offset: u32) {
         let image = &mut self.data;
         let begin = field_offset as usize;
