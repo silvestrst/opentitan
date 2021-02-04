@@ -15,10 +15,13 @@ pub struct ParsedConfig {
     pub peripheral_lockdown_info: PeripheralLockdownInfo,
     pub manifest_identifier: String,
     pub image_version: String,
-    pub image_timestamp: String,
+    pub extension0_offset: String,
     pub extension0_checksum: String,
+    pub extension1_offset: String,
     pub extension1_checksum: String,
+    pub extension2_offset: String,
     pub extension2_checksum: String,
+    pub extension3_offset: String,
     pub extension3_checksum: String,
 }
 

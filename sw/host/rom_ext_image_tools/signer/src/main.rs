@@ -38,7 +38,14 @@ fn main() {
     let private_key_der = fs::read(private_key_path)
         .expect("Failed to read the image!");
 
+    // Update manifest fields
     image.update_static_fields(&config);
+
+    let exponent = &signature_key_public_exponent_le();
+    image.update_exponent_field(exponent);
+
+    let modulus = &signature_key_modulus_le();
+    image.update_modulus_field(modulus);
 
     // Convert ASN.1 DER private key into Mundane RsaPrivKey.
     let private_key = RsaPrivKey::parse_from_der(&private_key_der)
@@ -54,4 +61,18 @@ fn main() {
 
     // Write image to disk.
     image.write_file();
+}
+
+/// TODO - dummy
+fn signature_key_public_exponent_le() -> Vec<u8> {
+    let dummy: Vec<u8> = vec![0xA5; 1];
+
+    dummy
+}
+
+/// TODO - dummy
+fn signature_key_modulus_le() -> Vec<u8> {
+    let dummy: Vec<u8> = vec![0xA5; 384];
+
+    dummy
 }

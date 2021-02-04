@@ -7,6 +7,8 @@ use std::ffi::OsString;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
+use std::time::SystemTime;
+use std::time::UNIX_EPOCH;
 
 use crate::manifest;
 use rom_ext_config::parser::ParsedConfig;
@@ -53,20 +55,32 @@ impl RawImage {
         );
         update(&config.image_version, manifest::ROM_EXT_IMAGE_VERSION_OFFSET);
         update(
-            &config.image_timestamp,
-            manifest::ROM_EXT_IMAGE_TIMESTAMP_OFFSET,
+            &config.extension0_offset,
+            manifest::ROM_EXT_EXTENSION0_OFFSET_OFFSET,
         );
         update(
             &config.extension0_checksum,
             manifest::ROM_EXT_EXTENSION0_CHECKSUM_OFFSET,
         );
         update(
+            &config.extension1_offset,
+            manifest::ROM_EXT_EXTENSION1_OFFSET_OFFSET,
+        );
+        update(
             &config.extension1_checksum,
             manifest::ROM_EXT_EXTENSION1_CHECKSUM_OFFSET,
         );
         update(
+            &config.extension2_offset,
+            manifest::ROM_EXT_EXTENSION2_OFFSET_OFFSET,
+        );
+        update(
             &config.extension2_checksum,
             manifest::ROM_EXT_EXTENSION2_CHECKSUM_OFFSET,
+        );
+        update(
+            &config.extension3_offset,
+            manifest::ROM_EXT_EXTENSION3_OFFSET_OFFSET,
         );
         update(
             &config.extension3_checksum,
@@ -78,6 +92,8 @@ impl RawImage {
 
         self.update_peripheral_lockdown_info_field(
             &config.peripheral_lockdown_info);
+
+        self.update_timestamp_field();
     }
 
     /// TODO
@@ -118,6 +134,13 @@ impl RawImage {
         dummy
     }
 
+    /// TODO - for now assume a u32 value.
+    pub fn generate_system_state_value(&self) -> [u8; 4] {
+        let dummy: u32 = 0xA5A5A5A5;
+
+        dummy.to_le_bytes()
+    }
+
     /// Writes the image buffer contents into a file.
     ///
     /// Places the new file alongside the original, with a "new_" prefix.
@@ -147,7 +170,22 @@ impl RawImage {
     fn update_peripheral_lockdown_info_field(
         &mut self, info: &PeripheralLockdownInfo) {
 
-        // TODO
+        // TODO: generate the peripheral_lockdown_blob from
+        //       PeripheralLockdownInfo, meanwhile use a hard-coded vector.
+
+        let dummy: Vec<u8> = vec![0xA5; 16];
+        let offset = manifest::ROM_EXT_PERIPHERAL_LOCKDOWN_INFO_OFFSET;
+        self.update_field(&dummy, offset);
+    }
+
+    /// TODO
+    fn update_timestamp_field(&mut self) {
+        let duration = SystemTime::now().duration_since(UNIX_EPOCH)
+            .expect("Failed to obtain the current time!");
+
+        let offset = manifest::ROM_EXT_IMAGE_TIMESTAMP_OFFSET;
+        let bytes = &duration.as_secs().to_le_bytes();
+        self.update_field(bytes, offset);
     }
 
     /// TODO

@@ -13,9 +13,12 @@
   },
   manifest_identifier: "43981",
   image_version: "0xdeadbeef",
-  image_timestamp: "0xaabbccddeeff1122",
+  extension0_offset: "0xdeadbeef",
   extension0_checksum: "0xdeadbeef",
+  extension1_offset: "0xdeadbeef",
   extension1_checksum: "0xdeadbeef",
+  extension2_offset: "0xdeadbeef",
   extension2_checksum: "0xdeadbeef",
+  extension3_offset: "0xdeadbeef",
   extension3_checksum: "0xdeadbeef",
 }
