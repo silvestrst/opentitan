@@ -31,6 +31,7 @@ pub struct InputFiles {
     pub image_path: String,
     pub private_key_der_path: String,
     pub usage_constraints_path: String,
+    pub system_state_value_path: String,
 }
 
 /// Peripheral Lockdown Information configuration data.

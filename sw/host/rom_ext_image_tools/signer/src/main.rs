@@ -55,7 +55,8 @@ fn main() {
     let image_sign_data = image.data_to_sign();
     let device_usage_value =
         &device_usage_value(&config.input_files.usage_constraints_path);
-    let system_state = &system_state_value();
+    let system_state =
+        &system_state_value(&config.input_files.system_state_value_path);
 
     let mut message_to_sign = Vec::<u8>::new();
     message_to_sign.extend_from_slice(system_state);
@@ -107,12 +108,11 @@ pub fn device_usage_value(dir: &str) -> Vec<u8>{
     dummy
 }
 
-/// Generates the system state value.
-///
-/// TODO: it is not clear at the moment what the format and size of this
-///       value is. For the time being assume u32.
-pub fn system_state_value() -> [u8; 4] {
-    let dummy: u32 = 0xA5A5A5A5;
+/// Obtains the system state value from the binary on disk.
+pub fn system_state_value(dir: &str) -> Vec<u8> {
+    let system_state_value_path = Path::new(dir);
+    let system_state_value = fs::read(system_state_value_path)
+        .expect("Failed to read system state value!");
 
-    dummy.to_le_bytes()
+    system_state_value
 }
