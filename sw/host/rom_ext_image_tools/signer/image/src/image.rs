@@ -120,7 +120,7 @@ impl RawImage {
     }
 
     /// TODO
-    pub fn device_usage_value(&mut self, dir: &str) -> Vec<u8>{
+    pub fn device_usage_value(&self, dir: &str) -> Vec<u8>{
         // Update fields from config.
         let usage_constraints_path = Path::new(dir);
         let usage_constraints = fs::read(usage_constraints_path)
@@ -135,7 +135,7 @@ impl RawImage {
     }
 
     /// TODO - for now assume a u32 value.
-    pub fn generate_system_state_value(&self) -> [u8; 4] {
+    pub fn system_state_value(&self) -> [u8; 4] {
         let dummy: u32 = 0xA5A5A5A5;
 
         dummy.to_le_bytes()

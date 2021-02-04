@@ -2,9 +2,10 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-#![deny(warnings)]
-#![deny(unused)]
-#![deny(unsafe_code)]
+// TODO - commenting out for now
+//#![deny(warnings)]
+//#![deny(unused)]
+//#![deny(unsafe_code)]
 
 use std::env;
 use std::fs;
@@ -52,9 +53,18 @@ fn main() {
         .expect("Failed to parse private key!");
 
     // Sign the image.
-    let data_to_sign = image.data_to_sign();
+    let image_sign_data = image.data_to_sign();
+    let device_usage_value =
+        &image.device_usage_value(&config.input_files.usage_constraints_path);
+    let system_state = &image.system_state_value();
+
+    let mut message_to_sign = Vec::<u8>::new();
+    message_to_sign.extend_from_slice(system_state);
+    message_to_sign.extend_from_slice(device_usage_value);
+    message_to_sign.extend_from_slice(image_sign_data);
+
     let signature = RsaSignature::<B3072, RsaPkcs1v15, Sha256>::
-    sign(&private_key, data_to_sign).expect("Failed to sign!");
+    sign(&private_key, &message_to_sign).expect("Failed to sign!");
 
     // Update signature field.
     image.update_signature_field(signature.bytes());
