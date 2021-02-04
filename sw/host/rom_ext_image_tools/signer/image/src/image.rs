@@ -158,7 +158,7 @@ impl RawImage {
     ///
     /// The information is encoded into the 128-bit binary blob.
     fn update_peripheral_lockdown_info_field(
-        &mut self, info: &PeripheralLockdownInfo) {
+        &mut self, _info: &PeripheralLockdownInfo) {
 
         // TODO: generate the peripheral_lockdown_blob from
         //       PeripheralLockdownInfo, meanwhile use a hard-coded vector.
