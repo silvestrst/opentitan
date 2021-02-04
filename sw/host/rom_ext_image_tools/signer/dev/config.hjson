@@ -4,8 +4,8 @@
 {
   input_files: {
     image_path: "build-out/sw/device/rom_exts/rom_ext_slot_a_sim_verilator.bin",
-    private_key_der_path: "sw/device/rom_exts/keys/test_key_private.der",
-    usage_constraints_path: "sw/device/rom_exts/usage_constraints.bin",
+    private_key_der_path: "sw/host/rom_ext_image_tools/signer/dev/test_key_private.der",
+    usage_constraints_path: "sw/host/rom_ext_image_tools/signer/dev/usage_constraints.bin",
   },
   // TBD
   peripheral_lockdown_info: {
