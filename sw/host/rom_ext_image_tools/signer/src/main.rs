@@ -2,10 +2,9 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-// TODO - commenting out for now
-//#![deny(warnings)]
-//#![deny(unused)]
-//#![deny(unsafe_code)]
+#![deny(warnings)]
+#![deny(unused)]
+#![deny(unsafe_code)]
 
 use std::env;
 use std::fs;
@@ -55,8 +54,8 @@ fn main() {
     // Sign the image.
     let image_sign_data = image.data_to_sign();
     let device_usage_value =
-        &image.device_usage_value(&config.input_files.usage_constraints_path);
-    let system_state = &image.system_state_value();
+        &device_usage_value(&config.input_files.usage_constraints_path);
+    let system_state = &system_state_value();
 
     let mut message_to_sign = Vec::<u8>::new();
     message_to_sign.extend_from_slice(system_state);
@@ -73,16 +72,47 @@ fn main() {
     image.write_file();
 }
 
-/// TODO - dummy
+/// Generate a dummy signature key public exponent.
+///
+/// Eventually this value will be obtained from the private key.
 fn signature_key_public_exponent_le() -> Vec<u8> {
     let dummy: Vec<u8> = vec![0xA5; 1];
 
     dummy
 }
 
-/// TODO - dummy
+/// Generate a dummy signature key modulus.
+///
+/// Eventually this value will be obtained from the private key.
 fn signature_key_modulus_le() -> Vec<u8> {
     let dummy: Vec<u8> = vec![0xA5; 384];
 
     dummy
+}
+
+/// Generates the device usage value.
+///
+/// This value is extrapolated from the ROM_EXT manifest usage_constraints
+/// field, and does not reside in the ROM_EXT manifest directly.
+pub fn device_usage_value(dir: &str) -> Vec<u8>{
+    let usage_constraints_path = Path::new(dir);
+    let _usage_constraints = fs::read(usage_constraints_path)
+        .expect("Failed to read usage constraints!");
+
+    // TODO: generate the device_usage_value from usage_constraints.
+    //       meanwhile use a hard-coded vector.
+
+    let dummy: Vec<u8> = vec![0xA5; 1024];
+
+    dummy
+}
+
+/// Generates the system state value.
+///
+/// TODO: it is not clear at the moment what the format and size of this
+///       value is. For the time being assume u32.
+pub fn system_state_value() -> [u8; 4] {
+    let dummy: u32 = 0xA5A5A5A5;
+
+    dummy.to_le_bytes()
 }

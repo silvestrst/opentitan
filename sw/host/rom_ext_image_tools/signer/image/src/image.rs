@@ -2,6 +2,10 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#![deny(warnings)]
+#![deny(unused)]
+#![deny(unsafe_code)]
+
 use std;
 use std::ffi::OsString;
 use std::fs;
@@ -41,8 +45,8 @@ impl RawImage {
     /// like signature key public exponent and modulus, are obtained at
     /// run-time.
     pub fn update_static_fields(&mut self, config: &ParsedConfig) {
-        // TODO checks to make sure that the config values (strings) are not
-        // bigger than the actual field size.
+        // TODO: checks to make sure that the config values (strings) are not
+        //       bigger than the actual field size.
 
         let mut update = |value, offset| {
             let bytes = str_to_vec_u8(value);
@@ -93,52 +97,36 @@ impl RawImage {
         self.update_peripheral_lockdown_info_field(
             &config.peripheral_lockdown_info);
 
+        // TODO: calculated at runtime, so we should probably rename this
+        //       function.
         self.update_timestamp_field();
     }
 
-    /// TODO
+    /// Updates ROM_EXT manifest signature key public exponent field.
     pub fn update_exponent_field(&mut self, exponent: &[u8]) {
         let offset = manifest::ROM_EXT_SIGNATURE_KEY_PUBLIC_EXPONENT_OFFSET;
         self.update_field(exponent, offset);
     }
 
-    /// TODO
+    /// Updates ROM_EXT manifest signature key modulus field.
     pub fn update_modulus_field(&mut self, modulus: &[u8]) {
         let offset = manifest::ROM_EXT_SIGNATURE_KEY_MODULUS_OFFSET;
         self.update_field(modulus, offset);
     }
 
-    /// TODO
+    /// Updates ROM_EXT manifest signature field.
     pub fn update_signature_field(&mut self, signature: &[u8]) {
         self.update_field(signature, manifest::ROM_EXT_IMAGE_SIGNATURE_OFFSET);
     }
 
-    /// TODO
+    /// Returns the portion of the image used for signing.
+    ///
+    /// Manifest identifier and the signature itself are not signed. The rest
+    /// of the image, including all the manifest fields that follow the
+    /// signature field.
     pub fn data_to_sign(&self) -> &[u8] {
         let offset = manifest::ROM_EXT_SIGNED_AREA_START_OFFSET as usize;
         &self.data[offset..]
-    }
-
-    /// TODO
-    pub fn device_usage_value(&self, dir: &str) -> Vec<u8>{
-        // Update fields from config.
-        let usage_constraints_path = Path::new(dir);
-        let usage_constraints = fs::read(usage_constraints_path)
-            .expect("Failed to read usage constraints!");
-
-        // TODO: generate the device_usage_value from usage_constraints.
-        //       meanwhile use a hard-coded vector.
-
-        let dummy: Vec<u8> = vec![0xA5; 1024];
-
-        dummy
-    }
-
-    /// TODO - for now assume a u32 value.
-    pub fn system_state_value(&self) -> [u8; 4] {
-        let dummy: u32 = 0xA5A5A5A5;
-
-        dummy.to_le_bytes()
     }
 
     /// Writes the image buffer contents into a file.
@@ -155,7 +143,7 @@ impl RawImage {
         fs::write(output_file, &self.data).expect("Failed to write the new binary file!");
     }
 
-    /// TODO
+    /// Updates ROM_EXT manifest usage constraints field.
     fn update_usage_constraints_field(&mut self, dir: &str) {
         // Update fields from config.
         let usage_constraints_path = Path::new(dir);
@@ -166,7 +154,9 @@ impl RawImage {
         self.update_field(&usage_constraints, offset);
     }
 
-    /// TODO
+    /// Updates ROM_EXT manifest peripheral lockdown info field.
+    ///
+    /// The information is encoded into the 128-bit binary blob.
     fn update_peripheral_lockdown_info_field(
         &mut self, info: &PeripheralLockdownInfo) {
 
