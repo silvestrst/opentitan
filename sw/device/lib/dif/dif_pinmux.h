@@ -21,6 +21,7 @@
  * determine which peripheral output or constants should be connected to it.
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "sw/device/lib/base/mmio.h"
@@ -59,19 +60,31 @@ typedef struct dif_pinmux_params {
    * The base address for the Pin Multiplexer hardware registers.
    */
   mmio_region_t base_addr;
-
-  // Other fields, if necessary.
 } dif_pinmux_params_t;
 
+// TODO
+// dif_pinmux_padring_dio_t
+// dif_pinmux_peripheral_input_t
+// dif_pinmux_padring_insel_t
+// dif_pinmux_peripheral_outsel_t
+
 /**
- * Runtime configuration for Pin Multiplexer.
- *
- * This struct describes runtime information for one-time configuration of the
- * hardware.
+ * TODO.
  */
-typedef struct dif_pinmux_config {
-  int dummy;
-} dif_pinmux_config_t;
+typedef enum dif_pinmux_sleep_mode {
+  kDifPinmuxSleepModeLow = 0,
+  kDifPinmuxSleepModeHigh,
+  kDifPinmuxSleepModeHighZ,
+  kDifPinmuxSleepModeKeep,
+} dif_pinmux_sleep_mode_t;
+
+/**
+ * TODO.
+ */
+typedef struct dif_pinmux_sleep_config {
+  dif_pinmux_toggle_t enable;
+  dif_pinmux_sleep_mode_t mode;
+} dif_pinmux_sleep_config_t;
 
 /**
  * A handle to Pin Multiplexer.
@@ -80,8 +93,6 @@ typedef struct dif_pinmux_config {
  */
 typedef struct dif_pinmux {
   dif_pinmux_params_t params;
-
-  // Other fields, if necessary.
 } dif_pinmux_t;
 
 /**
@@ -107,51 +118,29 @@ typedef enum dif_pinmux_result {
    * Indicates that this operation has been locked out, and can never
    * succeed until hardware reset.
    */
-  // Remove this variant if you don't need it.
   kDifPinmuxLocked = 3,
 } dif_pinmux_result_t;
 
-
 /**
- * Parameters for a Pin Multiplexer transaction.
+ * The result of a Pin Multiplexer operation.
  */
-typedef struct dif_pinmux_transaction {
-  int dummy;
-} dif_pinmux_transaction_t;
-
-/**
- * An output location for a Pin Multiplexer transaction.
- */
-typedef struct dif_pinmux_output {
-  int dummy;
-} dif_pinmux_output_t;
-
-/**
- * A Pin Multiplexer interrupt request type.
- */
-typedef enum dif_pinmux_irq {
-  eDifPinmuxDummy = 0,
-} dif_pinmux_irq_t;
-
-/**
- * A snapshot of the enablement state of the interrupts for Pin Multiplexer.
- *
- * This is an opaque type, to be used with the `dif_pinmux_irq_disable_all()` and
- * `dif_pinmux_irq_restore_all()` functions.
- */
-typedef uint32_t dif_pinmux_irq_snapshot_t;
-
-/**
- * Calculates information needed to safely call a DIF. Functions like this
- * should be used instead of global variables or #defines.
- *
- * This function does not actuate the hardware.
- *
- * @param params Hardware instantiation parameters.
- * @return The information required.
- */
-DIF_WARN_UNUSED_RESULT
-uint32_t dif_pinmux_get_size(dif_pinmux_params_t params);
+typedef enum dif_pinmux_init_result {
+  /**
+   * Indicates that the operation succeeded.
+   */
+  kDifPinmuxInitOk = kDifPinmuxOk,
+  /**
+   * Indicates some unspecified failure.
+   */
+  kDifPinmuxInitError = kDifPinmuxError,
+  /**
+   * Indicates that some parameter passed into a function failed a
+   * precondition.
+   *
+   * When this value is returned, no hardware operations occurred.
+   */
+  kDifPinmuxInitBadArg = kDifPinmuxBadArg,
+} dif_pinmux_init_result_t;
 
 /**
  * Creates a new handle for Pin Multiplexer.
@@ -159,161 +148,234 @@ uint32_t dif_pinmux_get_size(dif_pinmux_params_t params);
  * This function does not actuate the hardware.
  *
  * @param params Hardware instantiation parameters.
- * @param[out] handle Out param for the initialized handle.
+ * @param[out] pinmux Out param for the initialized handle.
  * @return The result of the operation.
  */
 DIF_WARN_UNUSED_RESULT
-dif_pinmux_result_t dif_pinmux_init(dif_pinmux_params_t params,
-                                              dif_pinmux_t *handle);
+dif_pinmux_init_result_t dif_pinmux_init(dif_pinmux_params_t params,
+                                         dif_pinmux_t *pinmux);
 
 /**
- * Configures Pin Multiplexer with runtime information.
+ * Sets the connection between a peripheral input and a Padring MIO input.
  *
- * This function should need to be called once for the lifetime of `handle`.
+ * `input` can be connected to any available Padring MIO input.
  *
- * @param handle A Pin Multiplexer handle.
- * @param config Runtime configuration parameters.
+ * @param pinmux A Pin Multiplexer handle.
+ * @param input Peripheral input.
+ * @param select Padring MIO input to be connected to `peripheral_input`.
  * @return The result of the operation.
  */
 DIF_WARN_UNUSED_RESULT
-dif_pinmux_result_t dif_pinmux_configure(const dif_pinmux_t *handle,
-                                                   dif_pinmux_config_t config);
+dif_pinmux_result_t dif_pinmux_input_select(const dif_pinmux_t *pinmux,
+                                            dif_pinmux_peripheral_input_t input,
+                                            dif_pinmux_padring_insel_t select);
 
 /**
- * Begins a Pin Multiplexer transaction.
- *
- * Each call to this function should be sequenced with a call to
- * `dif_pinmux_end()`.
- *
- * @param handle A Pin Multiplexer handle.
- * @param transaction Transaction configuration parameters.
- * @return The result of the operation.
- */
-DIF_WARN_UNUSED_RESULT
-dif_pinmux_result_t dif_pinmux_start(const dif_pinmux_t *handle,
-                                               dif_pinmux_transaction_t transaction);
-
-/** Ends a Pin Multiplexer transaction, writing the results to the given output..
- *
- * @param handle A Pin Multiplexer handle.
- * @param output Transaction output parameters.
- * @return The result of the operation.
- */
-DIF_WARN_UNUSED_RESULT
-dif_pinmux_result_t dif_pinmux_end(const dif_pinmux_t *handle,
-                                             dif_pinmux_output_t output);
-
-/**
- * Locks out Pin Multiplexer functionality.
+ * Locks out Pin Multiplexer input select for a given peripheral input.
  *
  * This function is reentrant: calling it while functionality is locked will
  * have no effect and return `kDifPinmuxOk`.
  *
- * @param handle A Pin Multiplexer handle.
- * @return The result of the operation.
+ * @param pinmux A Pin Multiplexer handle.
+ * @param input Peripheral input.
+ * @return `dif_pinmux_result_t`.
  */
 DIF_WARN_UNUSED_RESULT
-dif_pinmux_result_t dif_pinmux_lock(const dif_pinmux_t *handle);
+dif_pinmux_result_t dif_pinmux_input_select_lock(
+    dif_pinmux_t *pinmux, dif_pinmux_peripheral_input_t input);
 
 /**
- * Checks whether this Pin Multiplexer is locked.
+ * Checks whether this Pin Multiplexer input select is locked.
  *
- * @param handle A Pin Multiplexer handle.
+ * @param pinmux A Pin Multiplexer handle.
+ * @param input Peripheral input.
  * @param[out] is_locked Out-param for the locked state.
  * @return The result of the operation.
  */
 DIF_WARN_UNUSED_RESULT
-dif_pinmux_result_t dif_pinmux_is_locked(const dif_pinmux_t *handle,
+dif_pinmux_result_t dif_pinmux_input_select_is_locked(
+    const dif_pinmux_t *pinmux, dif_pinmux_peripheral_input_t input,
+    bool *is_locked);
+
+/**
+ * Sets the connection between a Padring MIO output and peripheral output.
+ *
+ * `output` can be connected to any available `peripheral_select` output.
+ *
+ * @param pinmux Pinmux state data.
+ * @param output Padring MIO output.
+ * @param select Peripheral output select.
+ * @return `dif_pinmux_result_t`.
+ */
+DIF_WARN_UNUSED_RESULT
+dif_pinmux_result_t dif_pinmux_output_select(
+    const dif_pinmux_t *pinmux, dif_pinmux_padring_mio_t output,
+    dif_pinmux_peripheral_outsel_t select);
+
+/**
+ * Locks out Pin Multiplexer output select for a given padring MIO output.
+ *
+ * This function is reentrant: calling it while functionality is locked will
+ * have no effect and return `kDifPinmuxOk`.
+ *
+ * @param pinmux Pinmux state data.
+ * @param output Padring MIO output.
+ * @return `dif_pinmux_result_t`.
+ */
+DIF_WARN_UNUSED_RESULT
+dif_pinmux_result_t dif_pinmux_output_select_lock(
+    dif_pinmux_t *pinmux, dif_pinmux_padring_mio_t output);
+
+/**
+ * Checks whether this Pin Multiplexer input select is locked.
+ *
+ * @param pinmux A Pin Multiplexer handle.
+ * @param output Padring MIO output.
+ * @param[out] is_locked Out-param for the locked state.
+ * @return The result of the operation.
+ */
+DIF_WARN_UNUSED_RESULT
+dif_pinmux_result_t dif_pinmux_output_select_is_locked(
+    const dif_pinmux_t *pinmux, dif_pinmux_padring_mio_t output,
+    bool *is_locked);
+
+/**
+ * TODO
+ *
+ * @param pinmux Pinmux state data.
+ * @param output Padring MIO output.
+ * @param config MIO sleep configuration.
+ * @return `dif_pinmux_result_t`.
+ */
+DIF_WARN_UNUSED_RESULT
+dif_pinmux_result_t dif_pinmux_mio_sleep_configure(
+    dif_pinmux_t *pinmux, dif_pinmux_padring_mio_t mio,
+    dif_pinmux_sleep_config_t config);
+
+/**
+ * Locks out Pin Multiplexer MIO sleep configuration.
+ *
+ * This function is reentrant: calling it while functionality is locked will
+ * have no effect and return `kDifPinmuxOk`.
+ *
+ * @param pinmux Pinmux state data.
+ * @param mio Padring MIO pin.
+ * @return `dif_pinmux_result_t`.
+ */
+DIF_WARN_UNUSED_RESULT
+dif_pinmux_result_t dif_pinmux_mio_sleep_lock(dif_pinmux_t *pinmux,
+                                              dif_pinmux_padring_mio_t mio);
+
+/**
+ * Checks whether this Pin Multiplexer MIO sleep configuration is locked.
+ *
+ * @param pinmux A Pin Multiplexer handle.
+ * @param mio Padring MIO pin.
+ * @param[out] is_locked Out-param for the locked state.
+ * @return The result of the operation.
+ */
+DIF_WARN_UNUSED_RESULT
+dif_pinmux_result_t dif_pinmux_mio_sleep_is_locked(const dif_pinmux_t *pinmux,
+                                                   dif_pinmux_padring_mio_t mio,
                                                    bool *is_locked);
 
 /**
- * Returns whether a particular interrupt is currently pending.
+ * Clears deep sleep behaviour for the Padring MIO pin.
  *
- * @param handle A Pin Multiplexer handle.
- * @param irq An interrupt type.
- * @param[out] is_pending Out-param for whether the interrupt is pending.
+ * When deep sleep mode is enabled for the pin, and the device has entered deep
+ * sleep mode; upon wake-up, the deep sleep for the pin can be only cleared
+ * through this function. Re-configuring the corresponding pin does not change
+ * the state of the pin.
+ *
+ * @param pinmux A Pin Multiplexer handle.
+ * @param mio Padring MIO pin.
  * @return The result of the operation.
  */
 DIF_WARN_UNUSED_RESULT
-dif_pinmux_result_t dif_pinmux_irq_is_pending(const dif_pinmux_t *handle,
-                                                        dif_pinmux_irq_t irq,
-                                                        bool *is_pending);
+dif_pinmux_result_t dif_pinmux_mio_sleep_clear_state(
+    const dif_pinmux_t *pinmux, dif_pinmux_padring_mio_t mio);
 
 /**
- * Acknowledges a particular interrupt, indicating to the hardware that it has
- * been successfully serviced.
+ * Returns whether a particular Padring MIO pin is deep sleep mode.
  *
- * @param handle A Pin Multiplexer handle.
- * @param irq An interrupt type.
+ * @param pinmux A Pin Multiplexer handle.
+ * @param mio Padring MIO pin.
+ * @param[out] in_sleep_mode The pin is in sleep mode.
  * @return The result of the operation.
  */
 DIF_WARN_UNUSED_RESULT
-dif_pinmux_result_t dif_pinmux_irq_acknowledge(const dif_pinmux_t *handle,
-                                                         dif_pinmux_irq_t irq);
+dif_pinmux_result_t dif_pinmux_mio_sleep_get_state(const dif_pinmux_t *pinmux,
+                                                   dif_pinmux_padring_mio_t mio,
+                                                   bool *in_sleep_mode);
 
 /**
- * Checks whether a particular interrupt is currently enabled or disabled.
+ * TODO
  *
- * @param handle A Pin Multiplexer handle.
- * @param irq An interrupt type.
- * @param[out] state Out-param toggle state of the interrupt.
- * @return The result of the operation.
+ * @param pinmux Pinmux state data.
+ * @param output Padring DIO output.
+ * @param config DIO sleep configuration.
+ * @return `dif_pinmux_result_t`.
  */
 DIF_WARN_UNUSED_RESULT
-dif_pinmux_result_t dif_pinmux_irq_get_enabled(const dif_pinmux_t *handle,
-                                                         dif_pinmux_irq_t irq,
-                                                         dif_pinmux_toggle_t *state);
+dif_pinmux_result_t dif_pinmux_dio_sleep_configure(
+    dif_pinmux_t *pinmux, dif_pinmux_padring_dio_t dio,
+    dif_pinmux_sleep_config_t config);
 
 /**
- * Sets whether a particular interrupt is currently enabled or disabled.
+ * Locks out Pin Multiplexer DIO sleep configuration.
  *
- * @param handle A Pin Multiplexer handle.
- * @param irq An interrupt type.
- * @param state The new toggle state for the interrupt.
- * @return The result of the operation.
+ * This function is reentrant: calling it while functionality is locked will
+ * have no effect and return `kDifPinmuxOk`.
+ *
+ * @param pinmux Pinmux state data.
+ * @param dio Padring DIO pin.
+ * @return `dif_pinmux_result_t`.
  */
 DIF_WARN_UNUSED_RESULT
-dif_pinmux_result_t dif_pinmux_irq_set_enabled(const dif_pinmux_t *handle,
-                                                         dif_pinmux_irq_t irq,
-                                                         dif_pinmux_toggle_t state);
+dif_pinmux_result_t dif_pinmux_dio_sleep_lock(dif_pinmux_t *pinmux,
+                                              dif_pinmux_padring_dio_t dio);
 
 /**
- * Forces a particular interrupt, causing it to be serviced as if hardware had
- * asserted it.
+ * Checks whether this Pin Multiplexer DIO sleep configuration is locked.
  *
- * @param handle A Pin Multiplexer handle.
- * @param irq An interrupt type.
+ * @param pinmux A Pin Multiplexer handle.
+ * @param dio Padring DIO pin.
+ * @param[out] is_locked Out-param for the locked state.
  * @return The result of the operation.
  */
 DIF_WARN_UNUSED_RESULT
-dif_pinmux_result_t dif_pinmux_irq_force(const dif_pinmux_t *handle,
-                                                   dif_pinmux_irq_t irq);
+dif_pinmux_result_t dif_pinmux_dio_sleep_is_locked(const dif_pinmux_t *pinmux,
+                                                   dif_pinmux_padring_dio_t dio,
+                                                   bool *is_locked);
 
 /**
- * Disables all interrupts, optionally snapshotting all toggle state for later
- * restoration.
+ * Clears deep sleep behaviour for the Padring DIO pin.
  *
- * @param handle A Pin Multiplexer handle.
- * @param[out] snapshot Out-param for the snapshot; may be `NULL`.
+ * When deep sleep mode is enabled for the pin, and the device has entered deep
+ * sleep mode; upon wake-up, the deep sleep for the pin can be only cleared
+ * through this function. Re-configuring the corresponding pin does not change
+ * the state of the pin.
+ *
+ * @param pinmux A Pin Multiplexer handle.
+ * @param dio Padring DIO pin.
  * @return The result of the operation.
  */
 DIF_WARN_UNUSED_RESULT
-dif_pinmux_result_t dif_pinmux_irq_disable_all(const dif_pinmux_t *handle,
-                                                         dif_pinmux_irq_snapshot_t *snapshot);
+dif_pinmux_result_t dif_pinmux_dio_sleep_clear_state(
+    const dif_pinmux_t *pinmux, dif_pinmux_padring_dio_t dio);
 
 /**
- * Restores interrupts from the given snapshot.
+ * Returns whether a particular Padring DIO pin is deep sleep mode.
  *
- * This function can be used with `dif_pinmux_irq_disable_all()` to temporary
- * interrupt save-and-restore.
- *
- * @param handle A Pin Multiplexer handle.
- * @param snapshot A snapshot to restore from.
+ * @param pinmux A Pin Multiplexer handle.
+ * @param dio Padring DIO pin.
+ * @param[out] in_sleep_mode The pin is in sleep mode.
  * @return The result of the operation.
  */
 DIF_WARN_UNUSED_RESULT
-dif_pinmux_result_t dif_pinmux_irq_restore_all(const dif_pinmux_t *handle,
-                                                         const dif_pinmux_irq_snapshot_t *snapshot);
+dif_pinmux_result_t dif_pinmux_dio_sleep_get_state(const dif_pinmux_t *pinmux,
+                                                   dif_pinmux_padring_dio_t dio,
+                                                   bool *in_sleep_mode);
 
 #ifdef __cplusplus
 }  // extern "C"
