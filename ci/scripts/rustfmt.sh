@@ -22,5 +22,19 @@ merge_base="$(git merge-base origin/$tgt_branch HEAD)" || {
 }
 echo "Running Rust lint checks on files changed since $merge_base"
 
-RUST_FILES_CHANGED="$(git log --pretty="format:" --name-only origin/${tgt_branch}..HEAD -- "*.rs" ".toml"| sort --unique)"
-echo "${RUST_FILES_CHANGED}"
+RUST_FILES_CHANGED="$(         \
+  git log                      \
+    --pretty="format:"         \
+    --name-only                \
+    origin/${tgt_branch}..HEAD \
+    -- "*.rs" ".toml"          \
+  | sort --unique              \
+)"
+
+for file in "${RUST_FILES_CHANGED}"; do
+    cd "$(dirname ${file})"
+    echo "$(pwd)"
+    rustfmt --check "${file}"
+    cd --
+done
+
