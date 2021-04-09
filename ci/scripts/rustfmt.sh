@@ -28,6 +28,12 @@ TMPFILE="$(mktemp)" || {
 }
 trap 'rm -f "$TMPFILE"' EXIT
 
+COMMITS="$(git log --pretty="format:%H" origin/${tgt_branch}..HEAD)"
+
+for commit in "${COMMITS}"; do
+    
+done
+
 set -o pipefail
 git diff -U0 "$merge_base" -- "*.rs" "*.toml" ':!*/vendor/*' | \
     clang-format-diff -p1 | \
