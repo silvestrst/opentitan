@@ -22,24 +22,5 @@ merge_base="$(git merge-base origin/$tgt_branch HEAD)" || {
 }
 echo "Running Rust lint checks on files changed since $merge_base"
 
-TMPFILE="$(mktemp)" || {
-    echo >&2 "Failed to create temporary file"
-    exit 1
-}
-trap 'rm -f "$TMPFILE"' EXIT
-
-COMMITS="$(git log --pretty="format:%H" origin/${tgt_branch}..HEAD)"
-
-for commit in "${COMMITS}"; do
-    
-done
-
-set -o pipefail
-git diff -U0 "$merge_base" -- "*.rs" "*.toml" ':!*/vendor/*' | \
-    clang-format-diff -p1 | \
-    tee "$TMPFILE"
-if [ -s "$TMPFILE" ]; then
-    echo -n "##vso[task.logissue type=error]"
-    echo "Rust lint failed. Use 'cargo fmt' with appropriate options to reformat the changed code."
-    exit 1
-fi
+RUST_FILES_CHANGED="$(git log --pretty="format:" --name-only origin/${tgt_branch}..HEAD -- "*.rs" ".toml"| sort --unique)"
+echo "${RUST_FILES_CHANGED}"
