@@ -132,5 +132,23 @@ sudo mkdir -p /tools/verible
 sudo chmod 777 /tools/verible
 tar -C /tools/verible -xf "$verible_tar" --strip-components=1
 
+# Install rustup
+RUSTUP_URL="https://sh.rustup.rs"
+
+rustup_setup_sh="$TMPDIR/rustup_setup.sh"
+
+curl --proto '=https' --tlsv1.2 -sSf -o "$rustup_setup_sh" "${RUSTUP_URL}" || {
+    error "Failed to download rustup setup script from ${RUSTUP_URL}"
+}
+
+sh "$rustup_setup.sh" || {
+    error "Failed to setup rustup"
+}
+
+# Install rustfmt
+rustup component add rustfmt || {
+    error "Failed to install rustfmt"
+}
+
 # Propagate PATH changes to all subsequent steps of the job
 echo "##vso[task.setvariable variable=PATH]/tools/verible/bin:$PATH"
